@@ -39,7 +39,6 @@ def check_dataset_sufficiency(df, N, K):
 
 # Now, to have our X and y, we will use the sliding window technique
 def sliding_window(df, N, K):
-  df = df.select_dtypes(include=[np.number]).values
   X, y = [], []
   for i in range(len(df) - N - K + 1 ): # N days have passed and K days to predict
     X_window = df[i : i + N] 
@@ -48,23 +47,15 @@ def sliding_window(df, N, K):
     X.append(X_window)
     y.append(y_window)
 
-  return np.array(X), np.array(y), df
+  return np.array(X), np.array(y)
 
 def data_preparation(df, N, K):
-  df = df.select_dtypes(include=[np.number]).values
   # We will now divide our X and Y values ​​into test and training data
   split = int(len(df) * 0.8)
   train_split = df[:split]
   test_split = df[split:]
   X_train, y_train = sliding_window(train_split, N, K)
   X_test, y_test = sliding_window(test_split, N, K)
-  # First, we will check if the number of dimensions of X is greater than 3 to flatten it
-  # For the X_train
-  if X_train.ndim > 3:
-    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], -1)
-  # For the X_test
-  if X_test.ndim > 3:
-    X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], -1)
   # We will now scale our values ​​so that they can fit into the model
   scaler_X = MinMaxScaler(feature_range=(0, 1))
   scaler_y = MinMaxScaler(feature_range=(0, 1))
@@ -85,8 +76,8 @@ def data_preparation(df, N, K):
 class predictive_model(nn.Module):
   def __init__(self, input_dim, hidden_dim, output_dim, K, n_heads):
     super(predictive_model, self).__init__()
-    # K layer 
     self.K = K
+    self.output_dim = output_dim
     # TCN layer
     self.conv1d = nn.Conv1d(in_channels= input_dim, out_channels= hidden_dim, kernel_size= 3, padding= 1)
     # LSTM layer
@@ -115,12 +106,6 @@ def train_model( X_train, y_train, input_dim, hidden_dim, output_dim, K, n_heads
   X_train = torch.tensor(X_train, dtype= torch.float32)
   y_train = torch.tensor(y_train, dtype= torch.float32)
   train_loader = DataLoader(TensorDataset(X_train, y_train), batch_size= batch_size, shuffle= True)
-
-  # Conversion and creation of the test DataLoader
-  """X_test = torch.tensor(X_test, dtype= torch.float32)
-  y_test = torch.tensor(y_test, dtype= torch.float32)
-  test_loader = DataLoader(TensorDataset(X_test, y_test), batch_size= batch_size, shuffle= False)"""
-
   # the model, the loss and the optimizer
   model = predictive_model(input_dim= input_dim, hidden_dim= hidden_dim, output_dim= output_dim, K = K, n_heads= n_heads )
   criterion = nn.MSELoss()                  
@@ -142,6 +127,10 @@ def model_training(df, N= None, K= None):
   if N is None or K is None:
     N, K = parameter_slide_windows()
   df = check_dataset_sufficiency(df, N, K)
+  df = df.select_dtypes(include=[np.number]).values
+  # We're going to check if the dataset has a dimension, in order to modify it
+  if df.ndim == 1:
+    df = df.reshape(-1, 1)
   X_train, X_test, y_train, y_test, scaler_X, scaler_y = data_preparation(df, N, K)
   input_dim = X_train.shape[-1]
   hidden_dim = input_dim * 8 # To make the brain grow proportionally
@@ -159,4 +148,5 @@ def model_training(df, N= None, K= None):
     for batch_X, batch_y in test_loader:
       predict = model(batch_X)
       predictions_list.append(predict.numpy())
+    final_predictions = np.concatenate(predictions_list, axis=0)
   return model, predictions_list, X_test, scaler_y, N, K

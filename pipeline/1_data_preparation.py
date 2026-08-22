@@ -38,5 +38,5 @@ def dataset_cleaning(data):
   if df.isna().sum().sum() > 0 : # We apply a condition to clean the dataset if there are NaN values
     df = df.interpolate(method='linear').ffill().dropna()
   
-  return df
+  return df, data
 
