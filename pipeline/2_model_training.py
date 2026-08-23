@@ -103,9 +103,9 @@ class predictive_model(nn.Module):
 
 def train_model( X_train, y_train, input_dim, hidden_dim, output_dim, K, n_heads, batch_size=32):
   # Conversion and creation of the training DataLoader
-  X_train = torch.tensor(X_train, dtype= torch.float32)
-  y_train = torch.tensor(y_train, dtype= torch.float32)
-  train_loader = DataLoader(TensorDataset(X_train, y_train), batch_size= batch_size, shuffle= True)
+  X_train_t = torch.tensor(X_train, dtype= torch.float32)
+  y_train_t = torch.tensor(y_train, dtype= torch.float32)
+  train_loader = DataLoader(TensorDataset(X_train_t, y_train_t), batch_size= batch_size, shuffle= True)
   # the model, the loss and the optimizer
   model = predictive_model(input_dim= input_dim, hidden_dim= hidden_dim, output_dim= output_dim, K = K, n_heads= n_heads )
   criterion = nn.MSELoss()                  
@@ -127,6 +127,11 @@ def model_training(df, N= None, K= None):
   if N is None or K is None:
     N, K = parameter_slide_windows()
   df = check_dataset_sufficiency(df, N, K)
+  # We will ensure the reproducibility of the model
+  torch.manual_seed(42)
+  np.random.seed(42)
+  torch.backends.cudnn.deterministic = True # To go faster with the possession of a GPU
+  dataframes = df.copy()
   df = df.select_dtypes(include=[np.number]).values
   # We're going to check if the dataset has a dimension, in order to modify it
   if df.ndim == 1:
@@ -138,9 +143,9 @@ def model_training(df, N= None, K= None):
   n_heads = 8 if hidden_dim % 8 == 0 else 4 # # to ensure that n_heads can always support the dataset
   model = train_model(X_train, y_train, input_dim, hidden_dim, output_dim, K, n_heads)
   # Conversion and creation of the test DataLoader
-  X_test = torch.tensor(X_test, dtype= torch.float32)
-  y_test = torch.tensor(y_test, dtype= torch.float32)
-  test_loader = DataLoader(TensorDataset(X_test, y_test), batch_size= 32, shuffle= False)
+  X_test_t = torch.tensor(X_test, dtype= torch.float32, requires_grad= True)
+  y_test_t = torch.tensor(y_test, dtype= torch.float32)
+  test_loader = DataLoader(TensorDataset(X_test_t, y_test_t), batch_size= 32, shuffle= False)
   # model evaluation
   model.eval()
   predictions_list = []
@@ -149,4 +154,4 @@ def model_training(df, N= None, K= None):
       predict = model(batch_X)
       predictions_list.append(predict.numpy())
     final_predictions = np.concatenate(predictions_list, axis=0)
-  return model, predictions_list, X_test, scaler_y, N, K
+  return model, final_predictions, X_test, N, K
