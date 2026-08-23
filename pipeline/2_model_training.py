@@ -4,7 +4,6 @@ import torch
 import torch.optim as optim
 import torch.nn as nn 
 from torch.utils.data import TensorDataset, DataLoader
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
 def parameter_slide_windows(): # We will create a function to query N and K so that the code does not return a sequence of errors
