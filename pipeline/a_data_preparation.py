@@ -2,10 +2,11 @@ import numpy as np
 import pandas as pd 
 def dataset_cleaning(data):
   df = data.copy()
-  #First, we will look for the column containing the date
+
+  # First, we will look for the column containing the date
   date_column = None
   for col in df.columns: # We will search for the column containing dates, while requiring the user to place this column first to avoid unnecessary loops
-    converted = pd.to_datetime(df[col], errors='coerce')
+    converted = pd.to_datetime(df[col], errors='coerce', format='mixed')
     if converted.notna().sum() > len(df) * 0.5:
       df[col] = converted
       date_column = col

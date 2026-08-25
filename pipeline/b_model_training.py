@@ -1,3 +1,7 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 import numpy as np
 import pandas as pd 
 import torch 
@@ -20,7 +24,7 @@ def parameter_slide_windows(): # We will create a function to query N and K so t
 
 
 # To be ensure that N + K <= len(data) we'll create a condition for make sure that if N + K > len(data) the code will still working
-def check_dataset_sufficiency(df, N, K):  
+def check_dataset_sufficiency(df, N, K): 
   if len(df) < (N + K):
     new_rows = []
     while len(df) + len(new_rows) < (N + K):
@@ -130,8 +134,9 @@ def model_training(df, N= None, K= None):
   torch.manual_seed(42)
   np.random.seed(42)
   torch.backends.cudnn.deterministic = True # To go faster with the possession of a GPU
-  dataframes = df.copy()
-  df = df.select_dtypes(include=[np.number]).values
+  dataframes = df.copy() 
+  df = df.select_dtypes(include=[np.number]).values 
+
   # We're going to check if the dataset has a dimension, in order to modify it
   if df.ndim == 1:
     df = df.reshape(-1, 1)
@@ -153,4 +158,4 @@ def model_training(df, N= None, K= None):
       predict = model(batch_X)
       predictions_list.append(predict.numpy())
     final_predictions = np.concatenate(predictions_list, axis=0)
-  return model, final_predictions, X_test, N, K
+  return model, final_predictions, X_test_t, dataframes 
