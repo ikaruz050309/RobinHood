@@ -14,7 +14,7 @@ def generate_llm_explication(importance_map, final_predictions, data):
     
     # We will now download the LLM midel
     model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
-    hf_token = "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"
+    hf_token = "Please enter your Hugging Face Token"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(
         model_name ,
