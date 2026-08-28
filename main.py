@@ -10,8 +10,7 @@ from pipeline.c_explainability import captum_explainability
 from pipeline.d_llm_explanation import generate_llm_explication
 
 # Configuration of settings that can be changed according to the user
-sample_df =  pd.read_csv("sample/coin_Bitcoin.csv")
-sample_df = sample_df.drop(columns=['SNo', 'Name'], errors='ignore')
+sample_df =  pd.read_csv("sample/gld_price_data.csv")
 N = 30
 K = 20
 
