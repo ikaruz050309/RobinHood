@@ -5,3 +5,5 @@ torch
 captum
 transformers
 accelerate
+streamlit
+groq
