@@ -47,10 +47,8 @@ export HUGGINGFACE_API_KEY="your_huggingface_api_key_here"
 
 ### 4. Launch the Framework
 ```bash
-streamlit run app.py
+python3 run main.py
 ```
-*Once the Streamlit interface opens in your browser, upload the provided `sample.csv` file to see the system in action.*
-
 ---
 
 ## ⚠️ Dataset Guidelines & Compliance Rules
