@@ -50,7 +50,7 @@ st.markdown("""
             color: #000000 !important;
         }
     </style>
-""", unsafehtml=True)
+""", unsafe_allow_html=True)
 
 # 3. En-tête Anonyme Officiel
 st.title("📈 Millnew AI")
@@ -232,4 +232,5 @@ def generate_local_fallback_report(importance_map, df, N, K):
     report = f"""The mathematical framework completed parsing across all input vectors. 
 
 The predictive output model indicates structured directional patterns for the provided asset framework ({all_assets_str}). Based on the Captum Integrated Gradients attribution analysis layer executed on-device, the system isolated **{dominant_asset}** as the core alpha driver, holding a dominant statistical attribution weight of **{dominant_weight}%**. 
+
 
