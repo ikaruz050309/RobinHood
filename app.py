@@ -11,54 +11,28 @@ from torch.utils.data import TensorDataset, DataLoader
 from sklearn.preprocessing import MinMaxScaler
 from captum.attr import IntegratedGradients
 
-# Configuration environnementale locale
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-# 1. Configuration de la page principale
 st.set_page_config(page_title="Millnew AI", page_icon="📈", layout="wide")
 
-# 2. Injection CSS pour forcer l'interface en NOIR ET BLANC
+# Style Monochrome Strict
 st.markdown("""
     <style>
-        /* Fond global noir */
-        .stApp {
-            background-color: #000000 !important;
-            color: #ffffff !important;
-        }
-        /* Forcer tous les textes, titres et paragraphes en blanc */
-        h1, h2, h3, h4, h5, h6, p, span, label, li {
-            color: #ffffff !important;
-        }
-        /* Personnalisation des boîtes d'avertissement et d'information */
-        .stAlert {
-            background-color: #111111 !important;
-            border: 1px solid #333333 !important;
-        }
-        /* Bordures et éléments des curseurs/sliders */
-        .stSlider, .stSelectbox, .stFileUploader {
-            color: #ffffff !important;
-        }
-        /* Boutons de téléchargement */
-        .stButton>button {
-            background-color: #111111 !important;
-            color: #ffffff !important;
-            border: 1px solid #ffffff !important;
-        }
-        .stButton>button:hover {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-        }
+        .stApp { background-color: #000000 !important; color: #ffffff !important; }
+        h1, h2, h3, p, span, label, li { color: #ffffff !important; }
+        .stAlert { background-color: #111111 !important; border: 1px solid #333333 !important; }
+        .stSlider, .stFileUploader { color: #ffffff !important; }
+        .stButton>button { background-color: #111111 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+        .stButton>button:hover { background-color: #ffffff !important; color: #000000 !important; }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. En-tête Anonyme Officiel
 st.title("📈 Millnew AI")
 st.subheader("On-Device Multi-Asset Forecasting Framework — Nearly Zero Hallucinations")
 
 st.write("---")
 
-# 4. Règles d'or et Avertissements sur l'utilisation des Datasets
 st.warning("""
 ### ⚠️ Crucial Dataset Guidelines & Rules:
 Before uploading any file to the framework, ensure your dataset strictly complies with the following structural criteria:
@@ -68,7 +42,6 @@ Before uploading any file to the framework, ensure your dataset strictly complie
 * **The Richer, The Better:** High data density directly translates to robust mathematical attribution maps. Ensure your historical record counts exceed your target N lookback horizons.
 """)
 
-# 5. Vision and Mission
 st.markdown("""
 ### 🧠 What is this project?
 Traditional Large Language Models (LLMs) tend to be baffling—they are great at reasoning but poor at raw math. 
@@ -78,10 +51,7 @@ By reversing the usual approach and feeding the LLM with deterministic predictio
 
 st.write("---")
 
-# ---------------------------------------------------------------------------
-# Pipeline Technique Déterministe
-# ---------------------------------------------------------------------------
-
+# Pipeline Technique
 def validate_dataset(df):
     lower_cols = [str(c).lower() for c in df.columns]
     if any("ticker" in c for c in lower_cols):
@@ -103,10 +73,7 @@ def dataset_cleaning(data):
             continue
         converted = pd.to_numeric(df[col], errors='coerce')
         if converted.isna().sum() > df[col].isna().sum():
-            df[col] = pd.to_numeric(
-                df[col].astype(str).str.replace(r'[^0-9.-]', '', regex=True),
-                errors='coerce',
-            )
+            df[col] = pd.to_numeric(df[col].astype(str).str.replace(r'[^0-9.-]', '', regex=True), errors='coerce')
         else:
             df[col] = converted
 
@@ -140,7 +107,6 @@ def sliding_window(df, N, K):
 def data_preparation(df, N, K):
     values = df.values
     split = int(len(values) * 0.8)
-    
     X_train, y_train = sliding_window(df.iloc[:split], N, K)
     X_test, y_test = sliding_window(df.iloc[split:], N, K)
 
@@ -194,7 +160,6 @@ def train_model(X_train, y_train, input_dim, hidden_dim, output_dim, K, n_heads)
 def run_training(df, N, K):
     df = check_dataset_sufficiency(df, N, K)
     torch.manual_seed(42)
-    
     X_train, X_test, y_train, y_test = data_preparation(df, N, K)
     input_dim = X_train.shape[-1]
     hidden_dim = 16
@@ -202,12 +167,10 @@ def run_training(df, N, K):
     n_heads = 2
 
     model = train_model(X_train, y_train, input_dim, hidden_dim, output_dim, K, n_heads)
-
     X_test_t = torch.tensor(X_test, dtype=torch.float32, requires_grad=True)
     model.eval()
     with torch.no_grad():
         final_predictions = model(X_test_t).numpy()
-
     return model, final_predictions, X_test_t, df
 
 def captum_explainability(model, X_test_t, df):
@@ -218,19 +181,57 @@ def captum_explainability(model, X_test_t, df):
     
     attr_np = np.abs(attributions.detach().numpy())
     mean_attr = np.mean(attr_np, axis=(0, 1))
-    
     importance_map = {name: float(score) for name, score in zip(df.columns, mean_attr)}
     total = sum(importance_map.values()) or 1
     return {k: round((v / total) * 100, 2) for k, v in importance_map.items()}
 
-def generate_local_fallback_report(importance_map, df, N, K):
-    sorted_features = sorted(importance_map.items(), key=lambda x: x[1], reverse=True)
-    dominant_asset = sorted_features[0][0]
-    dominant_weight = sorted_features[0][1]
-    all_assets_str = ", ".join(list(importance_map.keys()))
-    
-    report = f"""The mathematical framework completed parsing across all input vectors. 
+# Configuration des paramètres sur la page principale
+st.markdown("### 🎛️ Parameters Configuration")
+col_n, col_k = st.columns(2)
+with col_n:
+    N = st.slider("N Horizon (Context History)", min_value=1, max_value=30, value=10, step=1)
+with col_k:
+    K = st.slider("K Horizons (Future Steps)", min_value=1, max_value=30, value=5, step=1)
 
-The predictive output model indicates structured directional patterns for the provided asset framework ({all_assets_str}). Based on the Captum Integrated Gradients attribution analysis layer executed on-device, the system isolated **{dominant_asset}** as the core alpha driver, holding a dominant statistical attribution weight of **{dominant_weight}%**. 
+st.write("---")
 
+st.markdown("### 📥 UI Demo Input")
+csv_sample_content = """Date,SPX,GLD,USO,SLV,EUR/USD
+1/2/2008,1447.16,84.86,78.47,15.18,1.4716
+1/3/2008,1447.16,85.57,78.37,15.285,1.4744
+1/4/2008,1411.63,85.12,77.30,15.167,1.4754
+1/7/2008,1416.18,84.76,75.50,15.053,1.4682
+1/8/2008,1390.18,86.77,76.05,15.59,1.5570
+1/9/2008,1409.13,86.55,75.25,15.52,1.4664
+1/10/2008,1420.32,88.25,74.01,16.061,1.4801"""
+
+st.download_button(label="⬇️ Download Official gld_price_data.csv", data=csv_sample_content, file_name="gld_price_data.csv", mime="text/csv")
+uploaded_file = st.file_uploader("Drag and drop your custom CSV dataset here", type=["csv"])
+use_sample = st.checkbox("Or run the pipeline using the integrated 2008 dataset sample instantly")
+
+target_data = None
+if uploaded_file is not None:
+    try:
+        target_data = pd.read_csv(uploaded_file)
+    except Exception as e:
+        st.error("❌ Structural Read Error.")
+elif use_sample:
+    from io import StringIO
+    target_data = pd.read_csv(StringIO(csv_sample_content))
+
+if target_data is not None:
+    try:
+        validate_dataset(target_data)
+        cleaned_df = dataset_cleaning(target_data)
+        
+        if cleaned_df.shape == 0:
+            st.error("❌ Data Extraction Failure.")
+        else:
+            with st.spinner("🔄 Running execution loop..."):
+                model, final_predictions, X_test_t, processed_df = run_training(cleaned_df, N, K)
+                importance_map = min_map = captum_explainability(model, X_test_t, processed_df)
+            
+            st.success("✅ Computations completed!")
+            
+            # Graphique Captum Épuré
 
