@@ -19,17 +19,7 @@ This framework isolates raw mathematical feature attributions **on-device**, del
 ## 🛠️ Architecture & Privacy Design
 
 1. **Local Compute (100% On-Device):** Your raw time-series data, deep learning training loops (TCN + LSTM), and Captum mathematical feature attributions run entirely locally on your hardware.
-2. **Text Synthesis (Hybrid Cloud):** Only the final, anonymized deterministic numerical weights are sent via API to open-source LLMs on Hugging Face to generate the human-readable text report. **Your raw financial data never leaves your machine.**
-
----
-
-## 📂 Repository Structure
-
-Ensure your local directory contains these core files before execution:
-* `main.py` — The core deep learning training loop and mathematical framework pipeline.
-* `app.py` — The unified Streamlit user interface layer.
-* `requirements.txt` — The environment dependency manifest.
-* `sample.csv` — An example dataset ready for testing.
+2. **Text Synthesis (Hybrid Cloud):** Only the final, anonymized deterministic numerical weights are sent via API to open-source LLMs on Hugging Face to generate the human-readable text report. **Your raw data never leaves your machine.**
 
 ---
 
