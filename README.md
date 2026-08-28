@@ -47,7 +47,7 @@ export HUGGINGFACE_API_KEY="your_huggingface_api_key_here"
 
 ### 4. Launch the Framework
 ```bash
-python3 run main.py
+python3 main.py
 ```
 ---
 
