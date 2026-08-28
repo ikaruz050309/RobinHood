@@ -18,16 +18,47 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # 1. Configuration de la page principale
 st.set_page_config(page_title="Millnew AI", page_icon="📈", layout="wide")
 
-# 2. En-tête officiel de la Vitrine
+# 2. Injection CSS pour forcer l'interface en NOIR ET BLANC
+st.markdown("""
+    <style>
+        /* Fond global noir */
+        .stApp {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+        /* Forcer tous les textes, titres et paragraphes en blanc */
+        h1, h2, h3, h4, h5, h6, p, span, label, li {
+            color: #ffffff !important;
+        }
+        /* Personnalisation des boîtes d'avertissement et d'information */
+        .stAlert {
+            background-color: #111111 !important;
+            border: 1px solid #333333 !important;
+        }
+        /* Bordures et éléments des curseurs/sliders */
+        .stSlider, .stSelectbox, .stFileUploader {
+            color: #ffffff !important;
+        }
+        /* Boutons de téléchargement */
+        .stButton>button {
+            background-color: #111111 !important;
+            color: #ffffff !important;
+            border: 1px solid #ffffff !important;
+        }
+        .stButton>button:hover {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+    </style>
+""", unsafehtml=True)
+
+# 3. En-tête Anonyme Officiel
 st.title("📈 Millnew AI")
 st.subheader("On-Device Multi-Asset Forecasting Framework — Nearly Zero Hallucinations")
-st.markdown("""
-*Developed by a 17-year-old self-taught AI developer & independent researcher based in Mali.*
-""")
 
 st.write("---")
 
-# 3. Règles d'or et Avertissements sur l'utilisation des Datasets
+# 4. Règles d'or et Avertissements sur l'utilisation des Datasets
 st.warning("""
 ### ⚠️ Crucial Dataset Guidelines & Rules:
 Before uploading any file to the framework, ensure your dataset strictly complies with the following structural criteria:
@@ -37,7 +68,7 @@ Before uploading any file to the framework, ensure your dataset strictly complie
 * **The Richer, The Better:** High data density directly translates to robust mathematical attribution maps. Ensure your historical record counts exceed your target N lookback horizons.
 """)
 
-# 4. Vision and Mission
+# 5. Vision and Mission
 st.markdown("""
 ### 🧠 What is this project?
 Traditional Large Language Models (LLMs) tend to be baffling—they are great at reasoning but poor at raw math. 
@@ -52,7 +83,6 @@ st.write("---")
 # ---------------------------------------------------------------------------
 
 def validate_dataset(df):
-    """Rejette les datasets qui mélangent plusieurs entreprises."""
     lower_cols = [str(c).lower() for c in df.columns]
     if any("ticker" in c for c in lower_cols):
         raise ValueError("The system cannot process datasets mixing multiple companies. Remove the 'ticker' column.")
@@ -203,25 +233,3 @@ def generate_local_fallback_report(importance_map, df, N, K):
 
 The predictive output model indicates structured directional patterns for the provided asset framework ({all_assets_str}). Based on the Captum Integrated Gradients attribution analysis layer executed on-device, the system isolated **{dominant_asset}** as the core alpha driver, holding a dominant statistical attribution weight of **{dominant_weight}%**. 
 
-This feature weight dictates over half of the predictive variance across the configured N={N} historical lookback windows and K={K} forecasting steps ahead. Downstream correlation metrics confirm that secondary features remain strictly bounded by this leading coordinate. Risk metrics indicate structural convergence, ensuring the generated narrative stays mathematically tied to on-device tensor transformations without autoregressive guesswork."""
-    return report
-
-# ---------------------------------------------------------------------------
-# 4. Paramètres de Configuration Dynamique (Sidebar)
-# ---------------------------------------------------------------------------
-st.sidebar.header("🎛️ Parameters Configuration")
-
-N = st.sidebar.slider(
-    "N Horizon (Context Window History)", 
-    min_value=2, max_value=20, value=5, step=1,
-    help="Number of historical time-steps the model looks back to understand patterns."
-)
-
-K = st.sidebar.slider(
-    "K Horizons (Future Predictions Steps)", 
-    min_value=1, max_value=5, value=2, step=1,
-    help="Number of steps in the future the model will predict simultaneously."
-)
-
-# ---------------------------------------------------------------------------
-# 5. Zone de Déploiement du Jeu de Données Or Officiel
