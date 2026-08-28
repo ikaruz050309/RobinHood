@@ -27,7 +27,7 @@ Follow these precise steps to deploy and execute the pipeline locally on your ma
 
 ### 1. Clone the Architecture
 ```bash
-git clone https://github.com
+gh repo clone ikaruz050309/RobinHood
 cd YOUR_REPOSITORY
 ```
 
