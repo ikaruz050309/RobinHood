@@ -10,13 +10,17 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.preprocessing import MinMaxScaler
 from captum.attr import IntegratedGradients
+from groq import Groq
 
+# Variables d'environnement pour l'exécution locale
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+DEFAULT_GROQ_MODEL = "deepseek-r1-distill-llama-70b"
+
 st.set_page_config(page_title="Millnew AI", page_icon="📈", layout="wide")
 
-# Style Monochrome Strict
+# Injection CSS pour le thème noir et blanc strict
 st.markdown("""
     <style>
         .stApp { background-color: #000000 !important; color: #ffffff !important; }
@@ -51,7 +55,10 @@ By reversing the usual approach and feeding the LLM with deterministic predictio
 
 st.write("---")
 
-# Pipeline Technique
+# ---------------------------------------------------------------------------
+# Pipeline Technologique de Données et Réseaux
+# ---------------------------------------------------------------------------
+
 def validate_dataset(df):
     lower_cols = [str(c).lower() for c in df.columns]
     if any("ticker" in c for c in lower_cols):
@@ -185,10 +192,28 @@ def captum_explainability(model, X_test_t, df):
     total = sum(importance_map.values()) or 1
     return {k: round((v / total) * 100, 2) for k, v in importance_map.items()}
 
-# Configuration des paramètres sur la page principale
+def generate_llm_explication(importance_map, final_predictions, df, api_key):
+    try:
+        client = Groq(api_key=api_key)
+        prompt = f"""[SYSTEM] Translate these math attributes and matrices into a concise financial text synthesis.
+        [CAPTUM MAP] {importance_map}
+        [PREDICTION MATRIX SHAPE] {final_predictions[-1].tolist()}"""
+        completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model=DEFAULT_GROQ_MODEL
+        )
+        return completion.choices[0].message.content
+    except Exception:
+        return f"Mathematical attribution vector overview: {importance_map}"
+
+# ---------------------------------------------------------------------------
+# Interface Utilisateur Principale
+# ---------------------------------------------------------------------------
+
 st.markdown("### 🎛️ Parameters Configuration")
 col_n, col_k = st.columns(2)
 with col_n:
+    # La borne minimale à 1 empêche le LSTM de planter sur des tenseurs vides
     N = st.slider("N Horizon (Context History)", min_value=1, max_value=30, value=10, step=1)
 with col_k:
     K = st.slider("K Horizons (Future Steps)", min_value=1, max_value=30, value=5, step=1)
@@ -205,32 +230,3 @@ csv_sample_content = """Date,SPX,GLD,USO,SLV,EUR/USD
 1/9/2008,1409.13,86.55,75.25,15.52,1.4664
 1/10/2008,1420.32,88.25,74.01,16.061,1.4801"""
 
-st.download_button(label="⬇️ Download Official gld_price_data.csv", data=csv_sample_content, file_name="gld_price_data.csv", mime="text/csv")
-uploaded_file = st.file_uploader("Drag and drop your custom CSV dataset here", type=["csv"])
-use_sample = st.checkbox("Or run the pipeline using the integrated 2008 dataset sample instantly")
-
-target_data = None
-if uploaded_file is not None:
-    try:
-        target_data = pd.read_csv(uploaded_file)
-    except Exception as e:
-        st.error("❌ Structural Read Error.")
-elif use_sample:
-    from io import StringIO
-    target_data = pd.read_csv(StringIO(csv_sample_content))
-
-if target_data is not None:
-    try:
-        validate_dataset(target_data)
-        cleaned_df = dataset_cleaning(target_data)
-        
-        if cleaned_df.shape == 0:
-            st.error("❌ Data Extraction Failure.")
-        else:
-            with st.spinner("🔄 Running execution loop..."):
-                model, final_predictions, X_test_t, processed_df = run_training(cleaned_df, N, K)
-                importance_map = captum_explainability(model, X_test_t, processed_df)
-            
-            st.success("✅ Computations completed!")
-            
-            # Graphique Captum Épuré
