@@ -60,7 +60,3 @@ To prevent matrix dimensions or compliance checks from halting the pipeline, you
 * **Data Density (The Richer, The Better):** High data density directly translates to robust mathematical attribution maps. Ensure your historical record counts vastly exceed your configured context windows ($N$) and prediction horizons ($K$).
 
 ---
-
-## 📜 License
-
-This project is licensed under the GNU General Public License v3 (GPL-3.0) - see the LICENSE file for details.
