@@ -22,6 +22,17 @@ This framework isolates raw mathematical feature attributions **on-device**, del
 2. **Text Synthesis (Hybrid Cloud):** Only the final, anonymized deterministic numerical weights are sent via API to open-source LLMs on Hugging Face to generate the human-readable text report. **Your raw data never leaves your machine.**
 
 ---
+## 📊 Model Evaluation & Performance
+
+Here are the evaluation metrics of the hybrid TCN-LSTM-Attention framework calculated on the test dataset split (20%):
+
+| Metric | Value | Description |
+| :--- | :--- | :--- |
+| **MAE** (Mean Absolute Error) | `2.2757` | Average absolute vertical distance between the prediction and the reality. |
+| **MSE** (Mean Squared Error) | `15.6271` | Average squared loss, heavily penalizing larger forecasting errors. |
+
+> *Note: These benchmarks were calculated using Google Colab during the evaluation loop on the test split.*
+
 
 ## 🚀 How to Use & Setup
 
