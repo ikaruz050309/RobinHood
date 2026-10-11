@@ -18,4 +18,6 @@ jobs:
           github_repo_id: ${{ github.repository }}
           huggingface_repo_id: Ikaru2lt/RobinHood
           hf_token: ${{ secrets.HF_TOKEN }}
-          repo_type:
+          repo_type: model
+          force: true
+
